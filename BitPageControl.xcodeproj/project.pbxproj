@@ -16,6 +16,8 @@
 		5A80B79F24F4584600382501 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5A80B79D24F4584600382501 /* Main.storyboard */; };
 		5A80B7A124F4585100382501 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5A80B7A024F4585100382501 /* Assets.xcassets */; };
 		5A80B7A424F4585100382501 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5A80B7A224F4585100382501 /* LaunchScreen.storyboard */; };
+		5A80B7AA24F45D9700382501 /* BitPageControlWithTiming.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A80B7A924F45D9700382501 /* BitPageControlWithTiming.swift */; };
+		5A80B7AC24F4634000382501 /* .travis.yml in Resources */ = {isa = PBXBuildFile; fileRef = 5A80B7AB24F4634000382501 /* .travis.yml */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -43,6 +45,8 @@
 		5A80B7A024F4585100382501 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5A80B7A324F4585100382501 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		5A80B7A524F4585100382501 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		5A80B7A924F45D9700382501 /* BitPageControlWithTiming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BitPageControlWithTiming.swift; sourceTree = "<group>"; };
+		5A80B7AB24F4634000382501 /* .travis.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .travis.yml; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,6 +78,7 @@
 		5A80B76D24F456DC00382501 = {
 			isa = PBXGroup;
 			children = (
+				5A80B7AB24F4634000382501 /* .travis.yml */,
 				5A80B77924F456DD00382501 /* BitPageControl */,
 				5A80B78424F456DD00382501 /* BitPageControlTests */,
 				5A80B79624F4584600382501 /* BitPageControlDemo */,
@@ -96,6 +101,7 @@
 			children = (
 				5A80B77A24F456DD00382501 /* BitPageControl.h */,
 				5A80B77B24F456DD00382501 /* Info.plist */,
+				5A80B7A924F45D9700382501 /* BitPageControlWithTiming.swift */,
 			);
 			path = BitPageControl;
 			sourceTree = "<group>";
@@ -202,6 +208,7 @@
 				TargetAttributes = {
 					5A80B77624F456DD00382501 = {
 						CreatedOnToolsVersion = 11.6;
+						LastSwiftMigration = 1160;
 					};
 					5A80B77F24F456DD00382501 = {
 						CreatedOnToolsVersion = 11.6;
@@ -236,6 +243,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5A80B7AC24F4634000382501 /* .travis.yml in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -263,6 +271,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5A80B7AA24F45D9700382501 /* BitPageControlWithTiming.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -437,6 +446,7 @@
 		5A80B78C24F456DD00382501 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -453,6 +463,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
 				SUPPORTS_MACCATALYST = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -461,6 +472,7 @@
 		5A80B78D24F456DD00382501 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -485,6 +497,7 @@
 		5A80B78F24F456DD00382501 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = BitPageControlTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -502,6 +515,7 @@
 		5A80B79024F456DD00382501 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = BitPageControlTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
