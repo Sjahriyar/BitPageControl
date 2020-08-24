@@ -1,11 +1,6 @@
 
+osx_image: xcode11.6
 language: objective-c
-
-osx_image: xcode12
-env:
-  matrix:
-    - TEST_SDK=iphonesimulator13.0 OS=13.0 NAME='iPhone XR'
-    - TEST_SDK=iphonesimulator13.0 OS=13.0 NAME='iPhone 7'
-
-script:
-  - set -o pipefail && xcodebuild test -enableCodeCoverage YES -project BitPageControl.xcodeproj -scheme BitPageControl -sdk $TEST_SDK -destination "platform=iOS Simulator,OS=$OS,name=$NAME" ONLY_ACTIVE_ARCH=YES
+xcode_project: BitPageControl.xcodeproj # path to your xcodeproj folder
+xcode_scheme: BitPageControlTests
+xcode_destination: platform=iOS Simulator,OS=13.5,name=iPhone X
