@@ -12,13 +12,23 @@ import XCTest
 class BitPageControlTests: XCTestCase {
 
     var bitPageControl: BitPageControlWithTiming!
+    var kvoToken: NSKeyValueObservation?
+    var isAnimating: Bool?
     
     override func setUpWithError() throws {
         self.bitPageControl = BitPageControlWithTiming()
+        
+        self.kvoToken = self.bitPageControl.observe(\.currentPage, options: .new) { (bitPageControl, change) in
+            
+            guard change.newValue != nil else { return }
+            
+            self.isAnimating = true
+        }
     }
 
     override func tearDownWithError() throws {
         self.bitPageControl = nil
+        self.kvoToken?.invalidate()
     }
 
     func testNumberOfPages() {
@@ -53,6 +63,13 @@ class BitPageControlTests: XCTestCase {
         self.bitPageControl.setFillingDurationForIndicators([1.2, 1.0])
         
         XCTAssertEqual(self.bitPageControl.fillAnimationDuration.count, 2)
+    }
+    
+    func testIndicatorAnimationStartsOnCurrentPageSet() {
+        self.bitPageControl.numberOfPages = 10
+        self.bitPageControl.currentPage = 3
+        
+        XCTAssertNotNil(self.isAnimating)
     }
 
 }

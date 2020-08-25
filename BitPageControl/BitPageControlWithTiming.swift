@@ -22,11 +22,11 @@ public final class BitPageControlWithTiming: UIControl
     /// Conform to this protocol to get notified whenever the pageControl animation is compeleted.
     public var delegate: BitPageControlWithTimingDelegate?
     /// Indicates if an indicator is currently animating.
-    public var isAnimation: Bool = false
+    public var isAnimating: Bool = false
     /// Spacing between indicators. default 4
     public var spacing: CGFloat = 4 { didSet { self.stackView.spacing = spacing } }
     /// Current indicator, changing this value will automatically animate the current indicator. - zero base.
-    public var currentPage: Int = 0 {
+    @objc public dynamic var currentPage: Int = 0 {
         didSet {
             guard (currentPage > 0 && currentPage <= self.numberOfPages - 1) else {
                 currentPage = oldValue
@@ -199,7 +199,7 @@ public final class BitPageControlWithTiming: UIControl
             self.animationLayer.lineWidth = dot.frame.height
             
             let duration = self.fillAnimationDuration.indices.contains(self.currentPage) == true ? self.fillAnimationDuration[self.currentPage] : self.fillAnimationDuration.last!
-            debugPrint("🟢 \(!(self.currentPage == self.numberOfPages - 1))")
+            
             let animation = CABasicAnimation(keyPath: "strokeEnd")
             animation.fromValue = 0
             animation.toValue   = 1
@@ -235,11 +235,11 @@ public final class BitPageControlWithTiming: UIControl
 extension BitPageControlWithTiming: CAAnimationDelegate
 {
     public func animationDidStart(_ anim: CAAnimation) {
-        self.isAnimation = true
+        self.isAnimating = true
     }
     
     public func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
-        self.isAnimation = false
+        self.isAnimating = !flag
         
         if self.currentPage == self.numberOfPages - 1 {
             self.delegate?.pageControlDidEnd()
