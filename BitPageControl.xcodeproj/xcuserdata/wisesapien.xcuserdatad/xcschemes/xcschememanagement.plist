@@ -7,12 +7,35 @@
 		<key>BitPageControl.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>0</integer>
+			<integer>1</integer>
 		</dict>
 		<key>BitPageControlDemo.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>1</integer>
+			<integer>0</integer>
+		</dict>
+		<key>BitPageControlTests.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>5A80B77624F456DD00382501</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>5A80B77F24F456DD00382501</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>5A80B79424F4584600382501</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>

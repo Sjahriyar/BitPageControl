@@ -11,6 +11,7 @@ import UIKit
 public protocol BitPageControlWithTimingDelegate: class
 {
     func pageControlDidEnd()
+    func didSelectIndicatorAt(_ index: Int)
 }
 
 public final class BitPageControlWithTiming: UIControl
@@ -20,16 +21,16 @@ public final class BitPageControlWithTiming: UIControl
     
     /// Conform to this protocol to get notified whenever the pageControl animation is compeleted.
     public var delegate: BitPageControlWithTimingDelegate?
-    /// Indicates if an indicator is animating.
+    /// Indicates if an indicator is currently animating.
     public var isAnimation: Bool = false
-    
     /// Spacing between indicators. default 4
     public var spacing: CGFloat = 4 { didSet { self.stackView.spacing = spacing } }
-    /// Current indicator, changing this value will automatically animate the current indicator.
+    /// Current indicator, changing this value will automatically animate the current indicator. - zero base.
     public var currentPage: Int = 0 {
         didSet {
-            guard currentPage <= self.numberOfPages - 1 else {
-                print("🔴 The current number has not been set correctly.")
+            guard (currentPage > 0 && currentPage <= self.numberOfPages - 1) else {
+                currentPage = oldValue
+                print("🔴 The numberOfPages has not been set correctly.")
                 return
             }
             self.resetAnchor(self.widthAnchors[oldValue]) { (_) in
@@ -37,27 +38,23 @@ public final class BitPageControlWithTiming: UIControl
             }
         }
     }
-    /// Duration it takes to fill indicators. you can add multiple values, or single value.
-    public var fillAnimationDuration: [CFTimeInterval] = [3] {
-        didSet {
-            guard fillAnimationDuration.count <= numberOfPages else {
-                print("🔴 fillAnimationDuration count should match numberOfPages")
-                return
-            }
-        }
-    }
+    
+    private(set) var indicators = [UIView]()
+    /// Duration it takes to fill indicators. you can add multiple values, or single value. use setFillingDurationForIndicators method to set the value.
+    private(set) var fillAnimationDuration: [CFTimeInterval] = [2.5]
+    /// Duration it takes to reset current indicator to inactive size. default 0.25
+    public var indicatorCollapseAnimationDuration: TimeInterval = 0.25
     /// The tint color to be used for the page indicator
-    @IBInspectable public var pageIndicatorTintColor: UIColor = .lightGray
+    @IBInspectable public var pageIndicatorTintColor: UIColor = .lightGray {
+        didSet { self.setupIndicators() }
+    }
     /// The tint color to be used for the current page indicator
     @IBInspectable public var currentPageIndicatorTintColor: UIColor = .green
     /// If set to true, the dots starts filling one after each other till the end. default is false.
     @IBInspectable public var autoPlay = false
     
-    @IBInspectable public var numberOfPages: Int = 4 {
-        didSet { self.setupIndicators() }
-    }
+    @IBInspectable public var numberOfPages: Int = 0 { didSet { self.setupIndicators() }}
     
-    private(set) var indicators = [UIView]()
     
     // MARK: Privates
     
@@ -94,6 +91,8 @@ public final class BitPageControlWithTiming: UIControl
         self.setupCornerRadiuses()
     }
     
+    // MARK: - Private methods
+    
     private func setupView() {
         addSubview(self.stackView)
         
@@ -102,12 +101,20 @@ public final class BitPageControlWithTiming: UIControl
             self.stackView.centerYAnchor.constraint(equalTo: centerYAnchor),
             self.stackView.heightAnchor.constraint(equalTo: heightAnchor)
         ])
-        
-        self.setupIndicators()
     }
     
     private func setupIndicators() {
-        self.indicators.removeAll()
+        
+        guard self.numberOfPages > 0 else {
+            print("🔴 numberOfPages should be greater than 0")
+            return
+        }
+        
+        if !self.indicators.isEmpty {
+            self.indicators.removeAll()
+            self.widthAnchors.removeAll()
+            self.stackView.arrangedSubviews.forEach({ $0.removeFromSuperview() })
+        }
         
         for number in 0 ..< self.numberOfPages {
             let dot = UIView()
@@ -139,13 +146,17 @@ public final class BitPageControlWithTiming: UIControl
     fileprivate func resetAnchor(_ anchor: NSLayoutConstraint, completion: ((Bool) -> Void)?) {
         anchor.constant = 0
         
-        UIView.animate(withDuration: 0.2, animations: {
+        UIView.animate(withDuration: self.indicatorCollapseAnimationDuration, animations: {
             self.layoutSubviews()
         }, completion: completion)
     }
     
     @objc private func indicatorTapped(_ sender: UITapGestureRecognizer) {
-        guard let index = sender.view?.tag, index != self.currentPage else { return }
+        guard let index = sender.view?.tag else { return }
+        
+        self.delegate?.didSelectIndicatorAt(index)
+        
+        guard index != self.currentPage else { return }
         
         self.animationLayer.removeFromSuperlayer()
         
@@ -153,53 +164,71 @@ public final class BitPageControlWithTiming: UIControl
         
         self.resetAnchor(anchor) { (_) in
             self.currentPage = index
+            self.sendActions(for: .valueChanged)
         }
-        
-        sendActions(for: .valueChanged)
     }
-    /// Whenever you need to play the animation, call this method, alternately set the currentPage value to 0 or other pages to start the animation.
+    
+    // MARK: - Public methods
+    
+    /// Call this method to start the animation.
+    /// You should call this mehod when the view presented.
     public func startFillAnimation() {
-        let anchor = self.widthAnchors[self.currentPage]
+        guard self.numberOfPages > 0 else { return }
         
         self.animationLayer.removeFromSuperlayer()
+        
+        let anchor = self.widthAnchors[self.currentPage]
+        
+        let dot = self.indicators[self.currentPage]
+        anchor.constant += dot.frame.width * 2
         
         UIView.animate(withDuration: 0.2, animations: {
             self.layoutIfNeeded()
             
-        }) { (_) in
+        }, completion: { (_) in
             
-            let dot = self.indicators[self.currentPage]
-            anchor.constant += dot.frame.width * 2
+            let barPath = UIBezierPath()
+            barPath.move(to: .zero)
+            barPath.addLine(to: CGPoint(x: dot.bounds.maxX, y: 0))
             
-            UIView.animate(withDuration: 0.2, animations: {
-                self.layoutIfNeeded()
-                
-            }, completion: { (_) in
-                
-                let barPath = UIBezierPath()
-                barPath.move(to: .zero)
-                barPath.addLine(to: CGPoint(x: dot.bounds.maxX, y: 0))
-                
-                self.animationLayer.position = CGPoint(x: 0, y: dot.bounds.midY - barPath.bounds.height / 2)
-                self.animationLayer.path = barPath.cgPath
-                self.animationLayer.lineCap = .round
-                self.animationLayer.strokeColor = self.currentPageIndicatorTintColor.cgColor
-                self.animationLayer.fillColor = nil
-                self.animationLayer.lineWidth = dot.frame.height
-                
-                let animation = CABasicAnimation(keyPath: "strokeEnd")
-                animation.fromValue = 0
-                animation.toValue   = 1
-                animation.duration  = self.fillAnimationDuration[self.currentPage]
-                animation.fillMode  = .forwards
-                animation.delegate  = self
-                animation.isRemovedOnCompletion = true
-                
-                dot.layer.addSublayer(self.animationLayer)
-                
-                self.animationLayer.add(animation, forKey: nil)
-            })
+            self.animationLayer.position = CGPoint(x: 0, y: dot.bounds.midY - barPath.bounds.height / 2)
+            self.animationLayer.path = barPath.cgPath
+            self.animationLayer.lineCap = .round
+            self.animationLayer.strokeColor = self.currentPageIndicatorTintColor.cgColor
+            self.animationLayer.fillColor = nil
+            self.animationLayer.lineWidth = dot.frame.height
+            
+            let duration = self.fillAnimationDuration.indices.contains(self.currentPage) == true ? self.fillAnimationDuration[self.currentPage] : self.fillAnimationDuration.last!
+            debugPrint("🟢 \(!(self.currentPage == self.numberOfPages - 1))")
+            let animation = CABasicAnimation(keyPath: "strokeEnd")
+            animation.fromValue = 0
+            animation.toValue   = 1
+            animation.duration  = duration
+            animation.fillMode  = .forwards
+            animation.delegate  = self
+            animation.isRemovedOnCompletion = !(self.currentPage == self.numberOfPages - 1)
+            
+            dot.layer.addSublayer(self.animationLayer)
+            
+            self.animationLayer.add(animation, forKey: nil)
+        })
+    }
+    /**
+     Set indicators fill animation durations, each indicator may have different animation duration.
+     
+     The number of elements you add in the parameter doesn't have to match the `numberOfPages`.
+     
+     i.e: if the `numberOfPages` is 5 and timing parameter is set to [1.2, 3.2] the first indicator animation duration will be 1.2 second
+     and the rest of the indicators will have 3.2 seconds animation duration.
+     - Parameter timing: array  CFTimeInterval, a single value will take effect for all the indicators.
+     */
+    public func setFillingDurationForIndicators(_ timing: [CFTimeInterval]) {
+        guard timing.count > 0 else {
+            print("⚠️ timing parameter should not be empty.")
+            return
         }
+        
+        self.fillAnimationDuration = timing
     }
 }
 
@@ -215,21 +244,14 @@ extension BitPageControlWithTiming: CAAnimationDelegate
         if self.currentPage == self.numberOfPages - 1 {
             self.delegate?.pageControlDidEnd()
         }
+        
         guard flag, self.autoPlay else { return }
         
-        sendActions(for: .valueChanged)
-        self.animationLayer.removeFromSuperlayer()
-        
-        let anchor = self.widthAnchors[self.currentPage]
-        anchor.constant = 0
-        
-        UIView.animate(withDuration: 0.2, animations: {
-            self.layoutIfNeeded()
-            
-        }) { (_) in
-            if self.currentPage < self.indicators.endIndex - 1 {
-                self.currentPage += 1
-            }
+        if self.currentPage < self.numberOfPages - 1 {
+            self.currentPage += 1
+            self.sendActions(for: .valueChanged)
+        } else {
+            self.resetAnchor(self.widthAnchors.last!, completion: nil)
         }
     }
 }
