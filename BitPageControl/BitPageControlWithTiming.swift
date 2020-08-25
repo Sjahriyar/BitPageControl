@@ -28,9 +28,9 @@ public final class BitPageControlWithTiming: UIControl
     /// Current indicator, changing this value will automatically animate the current indicator. - zero base.
     @objc public dynamic var currentPage: Int = 0 {
         didSet {
-            guard (currentPage > 0 && currentPage <= self.numberOfPages - 1) else {
+            guard (currentPage >= 0 && currentPage <= self.numberOfPages - 1) else {
                 currentPage = oldValue
-                print("🔴 The numberOfPages has not been set correctly.")
+                print("⚠️ The numberOfPages has not been set correctly.")
                 return
             }
             self.resetAnchor(self.widthAnchors[oldValue]) { (_) in
@@ -94,6 +94,7 @@ public final class BitPageControlWithTiming: UIControl
     // MARK: - Private methods
     
     private func setupView() {
+        backgroundColor = .clear
         addSubview(self.stackView)
         
         addConstraints([
@@ -142,7 +143,7 @@ public final class BitPageControlWithTiming: UIControl
         
         self.indicators.forEach({ $0.layer.cornerRadius = $0.frame.height / 2 })
     }
-    
+    // reset the active indicator width to default size.
     fileprivate func resetAnchor(_ anchor: NSLayoutConstraint, completion: ((Bool) -> Void)?) {
         anchor.constant = 0
         
@@ -160,12 +161,8 @@ public final class BitPageControlWithTiming: UIControl
         
         self.animationLayer.removeFromSuperlayer()
         
-        let anchor = self.widthAnchors[self.currentPage]
-        
-        self.resetAnchor(anchor) { (_) in
-            self.currentPage = index
-            self.sendActions(for: .valueChanged)
-        }
+        self.currentPage = index
+        self.sendActions(for: .valueChanged)
     }
     
     // MARK: - Public methods
@@ -174,8 +171,6 @@ public final class BitPageControlWithTiming: UIControl
     /// You should call this mehod when the view presented.
     public func startFillAnimation() {
         guard self.numberOfPages > 0 else { return }
-        
-        self.animationLayer.removeFromSuperlayer()
         
         let anchor = self.widthAnchors[self.currentPage]
         
@@ -210,7 +205,7 @@ public final class BitPageControlWithTiming: UIControl
             
             dot.layer.addSublayer(self.animationLayer)
             
-            self.animationLayer.add(animation, forKey: nil)
+            self.animationLayer.add(animation, forKey: "stroke")
         })
     }
     /**
@@ -220,15 +215,15 @@ public final class BitPageControlWithTiming: UIControl
      
      i.e: if the `numberOfPages` is 5 and timing parameter is set to [1.2, 3.2] the first indicator animation duration will be 1.2 second
      and the rest of the indicators will have 3.2 seconds animation duration.
-     - Parameter timing: array  CFTimeInterval, a single value will take effect for all the indicators.
+     - Parameter durations: array  CFTimeInterval, a single value will take effect for all the indicators.
      */
-    public func setFillingDurationForIndicators(_ timing: [CFTimeInterval]) {
-        guard timing.count > 0 else {
-            print("⚠️ timing parameter should not be empty.")
+    public func setFillingDurationForIndicators(_ durations: [CFTimeInterval]) {
+        guard durations.count > 0 else {
+            print("⚠️ durations parameter should not be empty.")
             return
         }
         
-        self.fillAnimationDuration = timing
+        self.fillAnimationDuration = durations
     }
 }
 
@@ -241,17 +236,17 @@ extension BitPageControlWithTiming: CAAnimationDelegate
     public func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
         self.isAnimating = !flag
         
-        if self.currentPage == self.numberOfPages - 1 {
-            self.delegate?.pageControlDidEnd()
-        }
-        
-        guard flag, self.autoPlay else { return }
-        
-        if self.currentPage < self.numberOfPages - 1 {
-            self.currentPage += 1
-            self.sendActions(for: .valueChanged)
-        } else {
-            self.resetAnchor(self.widthAnchors.last!, completion: nil)
+        self.resetAnchor(self.widthAnchors[self.currentPage]) { (_) in
+            if self.currentPage == self.numberOfPages - 1 {
+                self.delegate?.pageControlDidEnd()
+            }
+            
+            guard flag, self.autoPlay else { return }
+            
+            if self.currentPage < self.numberOfPages - 1 {
+                self.currentPage += 1
+                self.sendActions(for: .valueChanged)
+            }
         }
     }
 }
