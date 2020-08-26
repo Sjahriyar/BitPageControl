@@ -36,8 +36,9 @@ class ViewController: UIViewController
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
-        self.pageControl.startFillAnimation()
+        Timer.scheduledTimer(withTimeInterval: 3, repeats: false) { (t) in
+            self.pageControl.startFillAnimation()
+        }
     }
     
     @objc func pageDidChange() {
